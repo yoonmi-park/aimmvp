@@ -515,8 +515,8 @@ paths:
 ## CodeBuild 를 통한 CI/CD 동작 결과
 아래 이미지는 aws pipeline에 각각의 서비스들을 올려, 코드가 업데이트 될때마다 자동으로 빌드/배포 하도록 하였다. CodeBuild 결과 K8S 결과
 
-Service Mesh
-istio 를 통해 booking, confirm service 에 적용
+## Service Mesh
+### istio 를 통해 booking, confirm service 에 적용
 kubectl get deploy booking -o yaml > booking_deploy.yaml
 kubectl apply -f <(istioctl kube-inject -f booking_deploy.yaml)
 
@@ -524,11 +524,11 @@ kubectl get deploy confirm -o yaml > confirm_deploy.yaml
 kubectl apply -f <(istioctl kube-inject -f confirm_deploy.yaml)
 istio적용 결과
 
-Scaleout(confirm) 적용
+### Scaleout(confirm) 적용
 kubectl scale deploy confirm --replicas=2
 scaleout 적용
 
-confirm 에 Circuit Break 적용
+### confirm 에 Circuit Break 적용
 kubectl apply -f - <<EOF
 apiVersion: networking.istio.io/v1alpha3
 kind: DestinationRule
@@ -550,7 +550,7 @@ spec:
       maxEjectionPercent: 100
 EOF
 
-## Self Healing 을 위한 Readiness, Liveness 적용
+### Self Healing 을 위한 Readiness, Liveness 적용
 ## cna-booking/../deplyment.yml
 readinessProbe:
     httpGet:
