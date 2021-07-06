@@ -85,7 +85,7 @@ cd bookinglist
 mvn spring-boot:run
 
 
-DDD 의 적용
+## DDD 의 적용
 각 서비스내에 도출된 핵심 Aggregate Root 객체를 Entity 로 선언. booking, confirm, notification
 package ohcna;
 
@@ -183,10 +183,11 @@ transfer-encoding: chunked
 ❯ http PATCH http://a87089e89ff2c465cb235f13b552bd86-1362531007.ap-northeast-2.elb.amazonaws.com:8080/bookings/7 bookingUserId="99999"
 [booking] 회의실 예약정보 삭제
 ❯ http DELETE http://a87089e89ff2c465cb235f13b552bd86-1362531007.ap-northeast-2.elb.amazonaws.com:8080/bookings/7
-동기식 호출 과 비동기식
+
+## 동기식 호출 과 비동기식
 분석단계에서의 조건 중 하나로 컨펌 반려(confirmDeny)->회의실 예약 취소(bookingCancel) 간의 호출은 동기식 일관성을 유지하는 트랜잭션으로 처리하기로 하였다. 호출 프로토콜은 이미 앞서 Rest Repository 에 의해 노출되어있는 REST 서비스를 FeignClient 를 이용하여 호출하도록 한다.
 
-동기식 호출(FeignClient 사용)
+### 동기식 호출(FeignClient 사용)
 // cna-confirm/../externnal/BookingService.java
 
 // feign client 로 booking method 호출
@@ -241,7 +242,7 @@ public interface BookingService {
             System.out.println("Error");
         }
     }
-비동기식 호출(Kafka Message 사용)
+### 비동기식 호출(Kafka Message 사용)
 Publish
 // cna-booking/../Booking.java
 @PostPersist
@@ -269,7 +270,8 @@ Subscribe
             System.out.println("##### listener SendNotification : " + bookingCreated.toJson());
         }
     }
-Gateway 적용
+
+### Gateway 적용
 각 서비스는 ClusterIP 로 선언하여 외부로 노출되지 않고, Gateway 서비스 만을 LoadBalancer 타입으로 선언하여 Gateway 서비스를 통해서만 접근할 수 있다.
 
 ## gateway/../resources/application.yml
@@ -311,7 +313,8 @@ spec:
     app: gateway
   type:
     LoadBalancer
-전체 시나리오 테스트
+
+### 전체 시나리오 테스트
 회의실 예약(bookingCreate)
 http POST http://ae0865d6fab6f4939b945502eec3b95f-35623661.ap-northeast-2.elb.amazonaws.com:8080/bookings roomId="556677" bookingUserId="45678" useStartDtm="202009021330" useEndDtm="202009021430"
 {
