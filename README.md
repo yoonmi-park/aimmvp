@@ -420,8 +420,9 @@ http GET  http://ae0865d6fab6f4939b945502eec3b95f-35623661.ap-northeast-2.elb.am
 HTTP/1.1 404 Not Found
 Date: Wed, 02 Sep 2020 02:12:16 GMT
 content-length: 0
-운영
-CI/CD 설정
+
+# 운영
+## CI/CD 설정
 각 구현체들은 각자의 source repository 에 구성되었고, 사용한 CI/CD 플랫폼은 AWS CodeBuild를 사용하였으며, pipeline build script 는 각 프로젝트 폴더 이하에 buildspec.yml 에 포함되었다. CI/CD Pipeline
 
 변경된 소스 코드를 GitHub에 push
