@@ -511,7 +511,8 @@ post_build:
 cache:
 paths:
   - '/root/.m2/**/*'
-CodeBuild 를 통한 CI/CD 동작 결과
+
+## CodeBuild 를 통한 CI/CD 동작 결과
 아래 이미지는 aws pipeline에 각각의 서비스들을 올려, 코드가 업데이트 될때마다 자동으로 빌드/배포 하도록 하였다. CodeBuild 결과 K8S 결과
 
 Service Mesh
@@ -548,7 +549,8 @@ spec:
       baseEjectionTime: 30s
       maxEjectionPercent: 100
 EOF
-Self Healing 을 위한 Readiness, Liveness 적용
+
+## Self Healing 을 위한 Readiness, Liveness 적용
 ## cna-booking/../deplyment.yml
 readinessProbe:
     httpGet:
