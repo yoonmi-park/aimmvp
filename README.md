@@ -21,14 +21,14 @@
 9. 예약이 취소(bookingCancelled) 되면 컴펌 내역이 삭제 된다. (confirmDelete)
 
 # 비기능적 요구사항
- 1.트랜잭션
-승인거절(confirmDenied) 되었을 경우 예약을 취소한다.(Sync 호출)
- 2.장애격리
-알림기능이 취소되더라도 예약과 승인 기능은 가능하다.
-Circuit Breaker, fallback
- 3.성능
-예약/승인 상태는 예약목록 시스템에서 확인 가능하다.(CQRS)
-예약/승인 상태가 변경될때 이메일로 알림을 줄 수 있다.(Event Driven)
+1. 트랜잭션 
+   - 승인거절(confirmDenied) 되었을 경우 예약을 취소한다.(Sync 호출)
+2. 장애격리
+   - 알림기능이 취소되더라도 예약과 승인 기능은 가능하다.
+   Circuit Breaker, fallback
+3. 성능
+   - 예약/승인 상태는 예약목록 시스템에서 확인 가능하다.(CQRS)
+   - 예약/승인 상태가 변경될때 이메일로 알림을 줄 수 있다.(Event Driven)
 
 # 분석 설계
 ## 이벤트 도출
@@ -37,33 +37,33 @@ Circuit Breaker, fallback
 ## 기능적 요구사항을 커버하는지 검증
 ![image](https://user-images.githubusercontent.com/86210580/124693726-e049aa80-df1a-11eb-9bf5-5e19163f5316.png)
 
-1.사용자가 회의실을 예약한다.(bookingCreate)
-2.사용자는 회의실 예약을 취소 할 수 있다.(bookingCancel)
-3.회의실을 예약하면 관리자에게 승인요청이 간다.
-4.관리자는 승인을 할 수 있다.(confirmComplete)
-5.관리자는 승인 거절 할 수 있다.(confirmDeny)
-6.관리자가 승인 거절하면 예약취소한다.(bookingCancel)
-7.예약취소하면 예약정보는 삭제하고 confirm 대상에서 삭제한다.(confirmDelete)
-8.에약/승인 상태가 바뀔때마다 이메일로 알림을 준다.
-9.예약이 취소(bookingCancelled) 되면 컴펌 내역이 삭제 된다. (confirmDelete) --> Saga 적용
-10.예약 및 승인 현황을 조회할 수 있다.(bookingList)
+1. 사용자가 회의실을 예약한다.(bookingCreate)
+2. 사용자는 회의실 예약을 취소 할 수 있다.(bookingCancel)
+3. 회의실을 예약하면 관리자에게 승인요청이 간다.
+4. 관리자는 승인을 할 수 있다.(confirmComplete)
+5. 관리자는 승인 거절 할 수 있다.(confirmDeny)
+6. 관리자가 승인 거절하면 예약취소한다.(bookingCancel)
+7. 예약취소하면 예약정보는 삭제하고 confirm 대상에서 삭제한다.(confirmDelete)
+8. 에약/승인 상태가 바뀔때마다 이메일로 알림을 준다.
+9. 예약이 취소(bookingCancelled) 되면 컴펌 내역이 삭제 된다. (confirmDelete) --> Saga 적용
+10. 예약 및 승인 현황을 조회할 수 있다.(bookingList)
 
 ## 비기능적 요구사항을 커버하는지 검증
- 1.트랜잭션
--승인거절(confirmDenied) 되었을 경우 예약을 취소한다.(Sync 호출)
- 2.장애격리
--알림기능이 취소되더라도 예약과 승인 기능은 가능하다.
-Circuit Breaker, fallback
- 3.성능
--예약/승인 상태는 예약목록 시스템에서 확인 가능하다.(CQRS)
--예약/승인 상태가 변경될때 이메일로 알림을 줄 수 있다.(Event Driven)
+ 1. 트랜잭션
+   - 승인거절(confirmDenied) 되었을 경우 예약을 취소한다.(Sync 호출)
+ 2. 장애격리
+   - 알림기능이 취소되더라도 예약과 승인 기능은 가능하다.
+  Circuit Breaker, fallback
+ 3. 성능
+   - 예약/승인 상태는 예약목록 시스템에서 확인 가능하다.(CQRS)
+   - 예약/승인 상태가 변경될때 이메일로 알림을 줄 수 있다.(Event Driven)
 
 ## 헥사고날 아키텍처 다이어그램 도출
 ![image](https://user-images.githubusercontent.com/86210580/124693988-6108a680-df1b-11eb-94ab-1502752e3325.png)
 
--hris Richardson, MSA Patterns 참고하여 Inbound adaptor와 Outbound adaptor를 구분함
--호출관계에서 PubSub 과 Req/Resp 를 구분함
--서브 도메인과 바운디드 컨텍스트의 분리: 각 팀의 KPI 별로 아래와 같이 관심 구현 스토리를 나눠가짐
+  - hris Richardson, MSA Patterns 참고하여 Inbound adaptor와 Outbound adaptor를 구분함
+  - 호출관계에서 PubSub 과 Req/Resp 를 구분함
+  - 서브 도메인과 바운디드 컨텍스트의 분리: 각 팀의 KPI 별로 아래와 같이 관심 구현 스토리를 나눠가짐
 
 #구현
 
@@ -87,7 +87,8 @@ mvn spring-boot:run
 
 
 ## DDD 의 적용
-각 서비스내에 도출된 핵심 Aggregate Root 객체를 Entity 로 선언. booking, confirm, notification
+ - 각 서비스내에 도출된 핵심 Aggregate Root 객체를 Entity 로 선언. booking, confirm, notification
+
 package ohcna;
 
 import javax.persistence.*;
@@ -151,13 +152,17 @@ public class Booking {
         this.status = status;
     }
 }
-Entity Pattern 과 Repository Pattern 을 적용하여 JPA 를 통하여 다양한 데이터소스 유형 (RDB or NoSQL) 에 대한 별도의 처리가 없도록 데이터 접근 어댑터를 자동 생성하기 위하여 Spring Data REST 의 RestRepository 를 적용하였다
+
+- Entity Pattern 과 Repository Pattern 을 적용하여 JPA 를 통하여 다양한 데이터소스 유형 (RDB or NoSQL) 에 대한 별도의 처리가 없도록 데이터 접근 어댑터를 자동 생성하기 위하여 Spring Data REST 의 RestRepository 를 적용하였다.
+
 package ohcna;
 import org.springframework.data.repository.PagingAndSortingRepository;
 public interface BookingRepository extends PagingAndSortingRepository<Booking, Long>{
 }
-적용 후 REST API 의 테스트
-[booking] 회의실 예약처리
+
+- 적용 후 REST API 의 테스트
+
+ - [booking] 회의실 예약처리
 ❯ http  POST http://a87089e89ff2c465cb235f13b552bd86-1362531007.ap-northeast-2.elb.amazonaws.com:8080/bookings roomId="101" useStartDtm="20200831183000" useEndDtm="20200831193000" bookingUserId="06675"
 HTTP/1.1 201 Created
 Content-Type: application/json;charset=UTF-8
@@ -180,15 +185,17 @@ transfer-encoding: chunked
     "useStartDtm": "20200831183000"
 }
 
-[booking] 회의실 예약정보 수정
+ - [booking] 회의실 예약정보 수정
 ❯ http PATCH http://a87089e89ff2c465cb235f13b552bd86-1362531007.ap-northeast-2.elb.amazonaws.com:8080/bookings/7 bookingUserId="99999"
-[booking] 회의실 예약정보 삭제
+
+ - [booking] 회의실 예약정보 삭제
 ❯ http DELETE http://a87089e89ff2c465cb235f13b552bd86-1362531007.ap-northeast-2.elb.amazonaws.com:8080/bookings/7
 
 ## 동기식 호출 과 비동기식
 분석단계에서의 조건 중 하나로 컨펌 반려(confirmDeny)->회의실 예약 취소(bookingCancel) 간의 호출은 동기식 일관성을 유지하는 트랜잭션으로 처리하기로 하였다. 호출 프로토콜은 이미 앞서 Rest Repository 에 의해 노출되어있는 REST 서비스를 FeignClient 를 이용하여 호출하도록 한다.
 
 ### 동기식 호출(FeignClient 사용)
+
 // cna-confirm/../externnal/BookingService.java
 
 // feign client 로 booking method 호출
@@ -243,8 +250,10 @@ public interface BookingService {
             System.out.println("Error");
         }
     }
+    
 ### 비동기식 호출(Kafka Message 사용)
-Publish
+
+- Publish
 // cna-booking/../Booking.java
 @PostPersist
 public void onPostPersist(){
@@ -254,7 +263,8 @@ public void onPostPersist(){
     // AbstractEvent.java 의 publishAfterCommit --> publish --> KafkaChannel(outputChannel).send
     bookingCreated.publishAfterCommit();
 }
-Subscribe
+
+- Subscribe
 // cna-notification/../PolicyHandler.java
 
     @StreamListener(KafkaProcessor.INPUT)
@@ -315,8 +325,8 @@ spec:
   type:
     LoadBalancer
 
-### 전체 시나리오 테스트
-회의실 예약(bookingCreate)
+## 전체 시나리오 테스트
+### 회의실 예약(bookingCreate)
 http POST http://ae0865d6fab6f4939b945502eec3b95f-35623661.ap-northeast-2.elb.amazonaws.com:8080/bookings roomId="556677" bookingUserId="45678" useStartDtm="202009021330" useEndDtm="202009021430"
 {
     "_links": {
