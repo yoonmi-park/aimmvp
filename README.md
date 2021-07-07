@@ -65,7 +65,7 @@
   - 호출관계에서 PubSub 과 Req/Resp 를 구분함
   - 서브 도메인과 바운디드 컨텍스트의 분리: 각 팀의 KPI 별로 아래와 같이 관심 구현 스토리를 나눠가짐
 
-#구현
+# 구현
 
 분석/설계 단계에서 도출된 헥사고날 아키텍처에 따라, 각 BC별로 대변되는 마이크로 서비스들을 스프링부트로 구현함. 구현한 각 서비스를 로컬에서 실행하는 방법은 아래와 같다 (각자의 포트넘버는 8081 ~ 808n 이다) 
 booking/ confirm/ gateway/ notification/ bookinglist/
@@ -282,10 +282,10 @@ public void onPostPersist(){
         }
     }
 
-### Gateway 적용
+## Gateway 적용
 각 서비스는 ClusterIP 로 선언하여 외부로 노출되지 않고, Gateway 서비스 만을 LoadBalancer 타입으로 선언하여 Gateway 서비스를 통해서만 접근할 수 있다.
 
-## gateway/../resources/application.yml
+ gateway/../resources/application.yml
 
 spring:
   profiles: docker
@@ -308,7 +308,8 @@ spring:
           uri: http://bookingList:8080
           predicates:
             - Path=/bookingLists/**
-## gateway/../kubernetes/service.yml
+            
+gateway/../kubernetes/service.yml
 
 apiVersion: v1
 kind: Service
@@ -326,8 +327,9 @@ spec:
     LoadBalancer
 
 ## 전체 시나리오 테스트
-### 회의실 예약(bookingCreate)
-http POST http://ae0865d6fab6f4939b945502eec3b95f-35623661.ap-northeast-2.elb.amazonaws.com:8080/bookings roomId="556677" bookingUserId="45678" useStartDtm="202009021330" useEndDtm="202009021430"
+### 1.회의실 예약(bookingCreate)
+
+ http POST http://ae0865d6fab6f4939b945502eec3b95f-35623661.ap-northeast-2.elb.amazonaws.com:8080/bookings roomId="556677" bookingUserId="45678" useStartDtm="202009021330" useEndDtm="202009021430"
 {
     "_links": {
         "booking": {
@@ -342,7 +344,8 @@ http POST http://ae0865d6fab6f4939b945502eec3b95f-35623661.ap-northeast-2.elb.am
     "useEndDtm": "202009021430",
     "useStartDtm": "202009021330"
 }
-승인내역 등록 확인(confirmRequest)
+
+### 2.승인내역 등록 확인(confirmRequest)
 http GET  http://ae0865d6fab6f4939b945502eec3b95f-35623661.ap-northeast-2.elb.amazonaws.com:8080/confirms/2
 {
     "_links": {
@@ -358,7 +361,8 @@ http GET  http://ae0865d6fab6f4939b945502eec3b95f-35623661.ap-northeast-2.elb.am
     "status": "BOOKED",
     "userId": "45678"
 }
-알림(notification)내역 확인
+
+### 3.알림(notification)내역 확인
 http GET  http://ae0865d6fab6f4939b945502eec3b95f-35623661.ap-northeast-2.elb.amazonaws.com:8080/notifications/5
 {
     "_links": {
@@ -373,7 +377,8 @@ http GET  http://ae0865d6fab6f4939b945502eec3b95f-35623661.ap-northeast-2.elb.am
     "sendDtm": "2020-09-02 02:03:56",
     "userId": "45678"
 }
-CQRS(bookingList) 확인
+
+### 4.CQRS(bookingList) 확인
 http GET  http://ae0865d6fab6f4939b945502eec3b95f-35623661.ap-northeast-2.elb.amazonaws.com:8080/bookingLists/7
 {
     "_links": {
@@ -395,7 +400,8 @@ http GET  http://ae0865d6fab6f4939b945502eec3b95f-35623661.ap-northeast-2.elb.am
     "useEndDtm": "202009021430",
     "useStartDtm": "202009021330"
 }
-승인거절(confirmDenied)
+
+### 5.승인거절(confirmDenied)
 http  PATCH http://ae0865d6fab6f4939b945502eec3b95f-35623661.ap-northeast-2.elb.amazonaws.com:8080/confirms/2 status="DENIED"
 {
     "_links": {
@@ -411,7 +417,8 @@ http  PATCH http://ae0865d6fab6f4939b945502eec3b95f-35623661.ap-northeast-2.elb.
     "status": "DENIED",
     "userId": "45678"
 }
-승인거절 Notification
+
+### 6.승인거절 Notification
 http GET  http://ae0865d6fab6f4939b945502eec3b95f-35623661.ap-northeast-2.elb.amazonaws.com:8080/notifications/6
 {
     "_links": {
@@ -426,7 +433,8 @@ http GET  http://ae0865d6fab6f4939b945502eec3b95f-35623661.ap-northeast-2.elb.am
     "sendDtm": "2020-09-02 02:10:23",
     "userId": "45678"
 }
-승인거절시 bookingCancelled 호출 --> booking 내역 삭제
+
+### 7. 승인거절시 bookingCancelled 호출 --> booking 내역 삭제
 http GET  http://ae0865d6fab6f4939b945502eec3b95f-35623661.ap-northeast-2.elb.amazonaws.com:8080/bookings/3
 HTTP/1.1 404 Not Found
 Date: Wed, 02 Sep 2020 02:12:16 GMT
@@ -434,16 +442,18 @@ content-length: 0
 
 # 운영
 ## CI/CD 설정
-각 구현체들은 각자의 source repository 에 구성되었고, 사용한 CI/CD 플랫폼은 AWS CodeBuild를 사용하였으며, pipeline build script 는 각 프로젝트 폴더 이하에 buildspec.yml 에 포함되었다. CI/CD Pipeline
+각 구현체들은 각자의 source repository 에 구성되었고, 사용한 CI/CD 플랫폼은 AWS CodeBuild를 사용하였으며, pipeline build script 는 각 프로젝트 폴더 이하에 buildspec.yml 에 포함되었다.
+그림
 
-변경된 소스 코드를 GitHub에 push
-CodeBuild에서 webhook으로 GitHub의 push 이벤트를 감지하고 build, test 수행
-Docker image를 생성하여 ECR에 push
-Kubernetes(EKS)에 도커 이미지 배포 요청
-ECR에서 도커 이미지 pull
-[ 구현 사항]
+1. 변경된 소스 코드를 GitHub에 push
+2. CodeBuild에서 webhook으로 GitHub의 push 이벤트를 감지하고 build, test 수행
+3. Docker image를 생성하여 ECR에 push
+4. Kubernetes(EKS)에 도커 이미지 배포 요청
+5. ECR에서 도커 이미지 pull
 
-CodeBuild에 EKS 권한 추가
+[구현 사항]
+
+- CodeBuild에 EKS 권한 추가
         {
            "Action": [
                "ecr:BatchCheckLayerAvailability",
@@ -457,8 +467,8 @@ CodeBuild에 EKS 권한 추가
            "Resource": "*",
            "Effect": "Allow"
        }
-EKS 역할에 CodeBuild 서비스 추가하는 내용을 EKS 의 ConfigMap 적용
-## aws-auth.yml
+- EKS 역할에 CodeBuild 서비스 추가하는 내용을 EKS 의 ConfigMap 적용
+aws-auth.yml
 apiVersion: v1
 data:
   mapRoles: |
@@ -482,7 +492,7 @@ metadata:
   selfLink: /api/v1/namespaces/kube-system/configmaps/aws-auth
   uid: cf038f09-ab94-4b60-9937-33acc0be86d8
 kubectl apply -f aws-auth.yml --force
-buildspec.yml
+- buildspec.yml
 version: 0.2
 
 phases:
@@ -525,6 +535,8 @@ paths:
 
 ## CodeBuild 를 통한 CI/CD 동작 결과
 아래 이미지는 aws pipeline에 각각의 서비스들을 올려, 코드가 업데이트 될때마다 자동으로 빌드/배포 하도록 하였다. CodeBuild 결과 K8S 결과
+
+그림 
 
 ## Service Mesh
 ### istio 를 통해 booking, confirm service 에 적용
