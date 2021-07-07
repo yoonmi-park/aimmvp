@@ -31,9 +31,19 @@
   - 예약/승인 상태가 변경될때 이메일로 알림을 줄 수 있다.(Event Driven)
 
 # 분석 설계
-## 이벤트 도출
+## 이벤트 스토밍
+- 이벤트 도출
 ![image](https://user-images.githubusercontent.com/86210580/124696343-d4141c00-df1f-11eb-90f1-79e6271e00f1.png)
-
+- Actor, Command 부착하여 읽기 좋게
+![image](https://user-images.githubusercontent.com/86210580/124708407-34618880-df35-11eb-8dea-bfedcdc40f72.png)
+- Aggregate으로 묶기
+![image](https://user-images.githubusercontent.com/86210580/124708710-9ae6a680-df35-11eb-890c-c2147efb183e.png)
+- Bounded Context로 묶기
+![image](https://user-images.githubusercontent.com/86210580/124708858-c8cbeb00-df35-11eb-8462-32653c110688.png)
+- Policy 부착
+![image](https://user-images.githubusercontent.com/86210580/124708974-eef18b00-df35-11eb-87cd-8cfcb55636b9.png)
+- Policy의 이동과 매핑(실선은 Req/Resp 점섬은 Pub/Sub)
+![image](https://user-images.githubusercontent.com/86210580/124709422-6e7f5a00-df36-11eb-8206-7d40e3b11c7e.png)
 
 ## 기능적 요구사항을 커버하는지 검증
 ![image](https://user-images.githubusercontent.com/86210580/124693726-e049aa80-df1a-11eb-9bf5-5e19163f5316.png)
