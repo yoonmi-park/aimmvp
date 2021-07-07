@@ -1,5 +1,5 @@
-# 주제 - 회의실 시스템
-## 회의실 사용을 위해 예약/취소하고 관리자가 승인/거절하는 시스템입니다. 예약의 상태 변경시에는 알림을 받을 수 있습니다.
+# 주제 - 회의실 관리 시스템
+## 회의실 사용을 위해 예약/취소하고 관리자가 승인/거절하는 시스템입니다. 예약 상태 변경시에는 알림을 받을 수 있습니다.
 
 # 구현 Repository
 1. https://github.com/aimmvp/cna-booking
@@ -32,10 +32,10 @@ Circuit Breaker, fallback
 
 # 분석 설계
 ## 이벤트 도출
-그림 
+![image](https://user-images.githubusercontent.com/86210580/124693655-c4de9f80-df1a-11eb-80ec-d61c7970da84.png)
 
 ## 기능적 요구사항을 커버하는지 검증
-그림
+![image](https://user-images.githubusercontent.com/86210580/124693726-e049aa80-df1a-11eb-9bf5-5e19163f5316.png)
 
 1.사용자가 회의실을 예약한다.(bookingCreate)
 2.사용자는 회의실 예약을 취소 할 수 있다.(bookingCancel)
@@ -48,26 +48,27 @@ Circuit Breaker, fallback
 9.예약이 취소(bookingCancelled) 되면 컴펌 내역이 삭제 된다. (confirmDelete) --> Saga 적용
 10.예약 및 승인 현황을 조회할 수 있다.(bookingList)
 
-## 비 기능적 요구사항을 커버하는지 검증
+## 비기능적 요구사항을 커버하는지 검증
  1.트랜잭션
-승인거절(confirmDenied) 되었을 경우 예약을 취소한다.(Sync 호출)
+-승인거절(confirmDenied) 되었을 경우 예약을 취소한다.(Sync 호출)
  2.장애격리
-알림기능이 취소되더라도 예약과 승인 기능은 가능하다.
+-알림기능이 취소되더라도 예약과 승인 기능은 가능하다.
 Circuit Breaker, fallback
  3.성능
-예약/승인 상태는 예약목록 시스템에서 확인 가능하다.(CQRS)
-예약/승인 상태가 변경될때 이메일로 알림을 줄 수 있다.(Event Driven)
+-예약/승인 상태는 예약목록 시스템에서 확인 가능하다.(CQRS)
+-예약/승인 상태가 변경될때 이메일로 알림을 줄 수 있다.(Event Driven)
 
 ## 헥사고날 아키텍처 다이어그램 도출
+![image](https://user-images.githubusercontent.com/86210580/124693988-6108a680-df1b-11eb-94ab-1502752e3325.png)
 
-그림
-
-hris Richardson, MSA Patterns 참고하여 Inbound adaptor와 Outbound adaptor를 구분함
-호출관계에서 PubSub 과 Req/Resp 를 구분함
-서브 도메인과 바운디드 컨텍스트의 분리: 각 팀의 KPI 별로 아래와 같이 관심 구현 스토리를 나눠가짐
+-hris Richardson, MSA Patterns 참고하여 Inbound adaptor와 Outbound adaptor를 구분함
+-호출관계에서 PubSub 과 Req/Resp 를 구분함
+-서브 도메인과 바운디드 컨텍스트의 분리: 각 팀의 KPI 별로 아래와 같이 관심 구현 스토리를 나눠가짐
 
 #구현
-분석/설계 단계에서 도출된 헥사고날 아키텍처에 따라, 각 BC별로 대변되는 마이크로 서비스들을 스프링부트로 구현함. 구현한 각 서비스를 로컬에서 실행하는 방법은 아래와 같다 (각자의 포트넘버는 8081 ~ 808n 이다) booking/ confirm/ gateway/ notification/ bookinglist/
+
+분석/설계 단계에서 도출된 헥사고날 아키텍처에 따라, 각 BC별로 대변되는 마이크로 서비스들을 스프링부트로 구현함. 구현한 각 서비스를 로컬에서 실행하는 방법은 아래와 같다 (각자의 포트넘버는 8081 ~ 808n 이다) 
+booking/ confirm/ gateway/ notification/ bookinglist/
 
 cd booking
 mvn spring-boot:run
