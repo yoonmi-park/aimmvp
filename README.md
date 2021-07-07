@@ -33,7 +33,7 @@
 # 분석 설계
 ## 이벤트 스토밍
 - 이벤트 도출
-![image](https://user-images.githubusercontent.com/86210580/124711539-26ae0200-df39-11eb-9772-0058e46ebac1.png)
+![image](https://user-images.githubusercontent.com/86210580/124711635-46452a80-df39-11eb-9eed-83391b06bb0a.png)
 - Actor, Command 부착하여 읽기 좋게
 ![image](https://user-images.githubusercontent.com/86210580/124708407-34618880-df35-11eb-8dea-bfedcdc40f72.png)
 - Aggregate으로 묶기
