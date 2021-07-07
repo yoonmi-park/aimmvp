@@ -22,17 +22,18 @@
 
 # 비기능적 요구사항
 1. 트랜잭션 
-   - 승인거절(confirmDenied) 되었을 경우 예약을 취소한다.(Sync 호출)
+  - 승인거절(confirmDenied) 되었을 경우 예약을 취소한다.(Sync 호출)
 2. 장애격리
-   - 알림기능이 취소되더라도 예약과 승인 기능은 가능하다.
+  - 알림기능이 취소되더라도 예약과 승인 기능은 가능하다.
    Circuit Breaker, fallback
 3. 성능
-   - 예약/승인 상태는 예약목록 시스템에서 확인 가능하다.(CQRS)
-   - 예약/승인 상태가 변경될때 이메일로 알림을 줄 수 있다.(Event Driven)
+  - 예약/승인 상태는 예약목록 시스템에서 확인 가능하다.(CQRS)
+  - 예약/승인 상태가 변경될때 이메일로 알림을 줄 수 있다.(Event Driven)
 
 # 분석 설계
 ## 이벤트 도출
-![image](https://user-images.githubusercontent.com/86210580/124693655-c4de9f80-df1a-11eb-80ec-d61c7970da84.png)
+![image](https://user-images.githubusercontent.com/86210580/124696343-d4141c00-df1f-11eb-90f1-79e6271e00f1.png)
+
 
 ## 기능적 요구사항을 커버하는지 검증
 ![image](https://user-images.githubusercontent.com/86210580/124693726-e049aa80-df1a-11eb-9bf5-5e19163f5316.png)
@@ -69,7 +70,7 @@
 
 분석/설계 단계에서 도출된 헥사고날 아키텍처에 따라, 각 BC별로 대변되는 마이크로 서비스들을 스프링부트로 구현함. 구현한 각 서비스를 로컬에서 실행하는 방법은 아래와 같다 (각자의 포트넘버는 8081 ~ 808n 이다) 
 booking/ confirm/ gateway/ notification/ bookinglist/
-
+```
 cd booking
 mvn spring-boot:run
 
@@ -84,11 +85,11 @@ mvn spring-boot:run
 
 cd bookinglist
 mvn spring-boot:run
-
+```
 
 ## DDD 의 적용
  - 각 서비스내에 도출된 핵심 Aggregate Root 객체를 Entity 로 선언. booking, confirm, notification
-
+```
 package ohcna;
 
 import javax.persistence.*;
@@ -152,17 +153,18 @@ public class Booking {
         this.status = status;
     }
 }
-
+```
 - Entity Pattern 과 Repository Pattern 을 적용하여 JPA 를 통하여 다양한 데이터소스 유형 (RDB or NoSQL) 에 대한 별도의 처리가 없도록 데이터 접근 어댑터를 자동 생성하기 위하여 Spring Data REST 의 RestRepository 를 적용하였다.
-
+```
 package ohcna;
 import org.springframework.data.repository.PagingAndSortingRepository;
 public interface BookingRepository extends PagingAndSortingRepository<Booking, Long>{
 }
-
-- 적용 후 REST API 의 테스트
+```
+### - 적용 후 REST API 의 테스트
 
  - [booking] 회의실 예약처리
+```
 ❯ http  POST http://a87089e89ff2c465cb235f13b552bd86-1362531007.ap-northeast-2.elb.amazonaws.com:8080/bookings roomId="101" useStartDtm="20200831183000" useEndDtm="20200831193000" bookingUserId="06675"
 HTTP/1.1 201 Created
 Content-Type: application/json;charset=UTF-8
@@ -184,18 +186,21 @@ transfer-encoding: chunked
     "useEndDtm": "20200831193000",
     "useStartDtm": "20200831183000"
 }
-
+```
  - [booking] 회의실 예약정보 수정
+```
 ❯ http PATCH http://a87089e89ff2c465cb235f13b552bd86-1362531007.ap-northeast-2.elb.amazonaws.com:8080/bookings/7 bookingUserId="99999"
-
+```
  - [booking] 회의실 예약정보 삭제
+```
 ❯ http DELETE http://a87089e89ff2c465cb235f13b552bd86-1362531007.ap-northeast-2.elb.amazonaws.com:8080/bookings/7
+```
 
 ## 동기식 호출 과 비동기식
 분석단계에서의 조건 중 하나로 컨펌 반려(confirmDeny)->회의실 예약 취소(bookingCancel) 간의 호출은 동기식 일관성을 유지하는 트랜잭션으로 처리하기로 하였다. 호출 프로토콜은 이미 앞서 Rest Repository 에 의해 노출되어있는 REST 서비스를 FeignClient 를 이용하여 호출하도록 한다.
 
 ### 동기식 호출(FeignClient 사용)
-
+```
 // cna-confirm/../externnal/BookingService.java
 
 // feign client 로 booking method 호출
@@ -250,10 +255,10 @@ public interface BookingService {
             System.out.println("Error");
         }
     }
-    
+```
 ### 비동기식 호출(Kafka Message 사용)
-
 - Publish
+```
 // cna-booking/../Booking.java
 @PostPersist
 public void onPostPersist(){
@@ -263,8 +268,9 @@ public void onPostPersist(){
     // AbstractEvent.java 의 publishAfterCommit --> publish --> KafkaChannel(outputChannel).send
     bookingCreated.publishAfterCommit();
 }
-
+```
 - Subscribe
+```
 // cna-notification/../PolicyHandler.java
 
     @StreamListener(KafkaProcessor.INPUT)
@@ -281,11 +287,11 @@ public void onPostPersist(){
             System.out.println("##### listener SendNotification : " + bookingCreated.toJson());
         }
     }
-
+```
 ## Gateway 적용
 각 서비스는 ClusterIP 로 선언하여 외부로 노출되지 않고, Gateway 서비스 만을 LoadBalancer 타입으로 선언하여 Gateway 서비스를 통해서만 접근할 수 있다.
-
- gateway/../resources/application.yml
+```
+ ## gateway/../resources/application.yml
 
 spring:
   profiles: docker
@@ -308,8 +314,9 @@ spring:
           uri: http://bookingList:8080
           predicates:
             - Path=/bookingLists/**
-            
-gateway/../kubernetes/service.yml
+```
+```
+##gateway/../kubernetes/service.yml
 
 apiVersion: v1
 kind: Service
@@ -325,11 +332,13 @@ spec:
     app: gateway
   type:
     LoadBalancer
-
+```
 ## 전체 시나리오 테스트
-### 1.회의실 예약(bookingCreate)
-
+ 1.회의실 예약(bookingCreate)
+```
  http POST http://ae0865d6fab6f4939b945502eec3b95f-35623661.ap-northeast-2.elb.amazonaws.com:8080/bookings roomId="556677" bookingUserId="45678" useStartDtm="202009021330" useEndDtm="202009021430"
+ ```
+ ```
 {
     "_links": {
         "booking": {
@@ -344,9 +353,12 @@ spec:
     "useEndDtm": "202009021430",
     "useStartDtm": "202009021330"
 }
-
-### 2.승인내역 등록 확인(confirmRequest)
+```
+ 2.승인내역 등록 확인(confirmRequest)
+```
 http GET  http://ae0865d6fab6f4939b945502eec3b95f-35623661.ap-northeast-2.elb.amazonaws.com:8080/confirms/2
+```
+```
 {
     "_links": {
         "confirm": {
@@ -361,9 +373,12 @@ http GET  http://ae0865d6fab6f4939b945502eec3b95f-35623661.ap-northeast-2.elb.am
     "status": "BOOKED",
     "userId": "45678"
 }
-
-### 3.알림(notification)내역 확인
+```
+ 3.알림(notification)내역 확인
+```
 http GET  http://ae0865d6fab6f4939b945502eec3b95f-35623661.ap-northeast-2.elb.amazonaws.com:8080/notifications/5
+```
+```
 {
     "_links": {
         "notification": {
@@ -377,9 +392,12 @@ http GET  http://ae0865d6fab6f4939b945502eec3b95f-35623661.ap-northeast-2.elb.am
     "sendDtm": "2020-09-02 02:03:56",
     "userId": "45678"
 }
-
-### 4.CQRS(bookingList) 확인
+```
+ 4.CQRS(bookingList) 확인
+```
 http GET  http://ae0865d6fab6f4939b945502eec3b95f-35623661.ap-northeast-2.elb.amazonaws.com:8080/bookingLists/7
+```
+```
 {
     "_links": {
         "bookingList": {
@@ -400,9 +418,12 @@ http GET  http://ae0865d6fab6f4939b945502eec3b95f-35623661.ap-northeast-2.elb.am
     "useEndDtm": "202009021430",
     "useStartDtm": "202009021330"
 }
-
-### 5.승인거절(confirmDenied)
+```
+ 5.승인거절(confirmDenied)
+```
 http  PATCH http://ae0865d6fab6f4939b945502eec3b95f-35623661.ap-northeast-2.elb.amazonaws.com:8080/confirms/2 status="DENIED"
+```
+```
 {
     "_links": {
         "confirm": {
@@ -417,9 +438,12 @@ http  PATCH http://ae0865d6fab6f4939b945502eec3b95f-35623661.ap-northeast-2.elb.
     "status": "DENIED",
     "userId": "45678"
 }
-
-### 6.승인거절 Notification
+```
+ 6.승인거절 Notification
+``` 
 http GET  http://ae0865d6fab6f4939b945502eec3b95f-35623661.ap-northeast-2.elb.amazonaws.com:8080/notifications/6
+```
+```
 {
     "_links": {
         "notification": {
@@ -433,13 +457,16 @@ http GET  http://ae0865d6fab6f4939b945502eec3b95f-35623661.ap-northeast-2.elb.am
     "sendDtm": "2020-09-02 02:10:23",
     "userId": "45678"
 }
-
-### 7. 승인거절시 bookingCancelled 호출 --> booking 내역 삭제
+```
+ 7. 승인거절시 bookingCancelled 호출 --> booking 내역 삭제
+```
 http GET  http://ae0865d6fab6f4939b945502eec3b95f-35623661.ap-northeast-2.elb.amazonaws.com:8080/bookings/3
+```
+```
 HTTP/1.1 404 Not Found
 Date: Wed, 02 Sep 2020 02:12:16 GMT
 content-length: 0
-
+```
 # 운영
 ## CI/CD 설정
 각 구현체들은 각자의 source repository 에 구성되었고, 사용한 CI/CD 플랫폼은 AWS CodeBuild를 사용하였으며, pipeline build script 는 각 프로젝트 폴더 이하에 buildspec.yml 에 포함되었다.
@@ -454,6 +481,7 @@ content-length: 0
 [구현 사항]
 
 - CodeBuild에 EKS 권한 추가
+```
         {
            "Action": [
                "ecr:BatchCheckLayerAvailability",
@@ -467,7 +495,9 @@ content-length: 0
            "Resource": "*",
            "Effect": "Allow"
        }
+```    
 - EKS 역할에 CodeBuild 서비스 추가하는 내용을 EKS 의 ConfigMap 적용
+```
 aws-auth.yml
 apiVersion: v1
 data:
@@ -491,8 +521,12 @@ metadata:
   resourceVersion: "854"
   selfLink: /api/v1/namespaces/kube-system/configmaps/aws-auth
   uid: cf038f09-ab94-4b60-9937-33acc0be86d8
+```
+```
 kubectl apply -f aws-auth.yml --force
+```
 - buildspec.yml
+```
 version: 0.2
 
 phases:
@@ -532,7 +566,7 @@ post_build:
 cache:
 paths:
   - '/root/.m2/**/*'
-
+```
 ## CodeBuild 를 통한 CI/CD 동작 결과
 아래 이미지는 aws pipeline에 각각의 서비스들을 올려, 코드가 업데이트 될때마다 자동으로 빌드/배포 하도록 하였다. CodeBuild 결과 K8S 결과
 
@@ -540,18 +574,23 @@ paths:
 
 ## Service Mesh
 ### istio 를 통해 booking, confirm service 에 적용
+```
 kubectl get deploy booking -o yaml > booking_deploy.yaml
 kubectl apply -f <(istioctl kube-inject -f booking_deploy.yaml)
 
 kubectl get deploy confirm -o yaml > confirm_deploy.yaml
 kubectl apply -f <(istioctl kube-inject -f confirm_deploy.yaml)
+```
 istio적용 결과
 
 ### Scaleout(confirm) 적용
+```
 kubectl scale deploy confirm --replicas=2
+```
 scaleout 적용
 
 ### confirm 에 Circuit Break 적용
+```
 kubectl apply -f - <<EOF
 apiVersion: networking.istio.io/v1alpha3
 kind: DestinationRule
@@ -572,8 +611,9 @@ spec:
       baseEjectionTime: 30s
       maxEjectionPercent: 100
 EOF
-
+```
 ### Self Healing 을 위한 Readiness, Liveness 적용
+```
 ## cna-booking/../deplyment.yml
 readinessProbe:
     httpGet:
@@ -591,5 +631,5 @@ livenessProbe:
     timeoutSeconds: 2
     periodSeconds: 5
     failureThreshold: 5
-
+```
 
