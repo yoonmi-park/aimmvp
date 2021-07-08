@@ -480,7 +480,6 @@ content-length: 0
 # 운영
 ## CI/CD 설정
 각 구현체들은 각자의 source repository 에 구성되었고, 사용한 CI/CD 플랫폼은 AWS CodeBuild를 사용하였으며, pipeline build script 는 각 프로젝트 폴더 이하에 buildspec.yml 에 포함되었다.
-그림
 
 1. 변경된 소스 코드를 GitHub에 push
 2. CodeBuild에서 webhook으로 GitHub의 push 이벤트를 감지하고 build, test 수행
@@ -490,7 +489,13 @@ content-length: 0
 
 [구현 사항]
 
-- CodeBuild에 EKS 권한 추가
+- CodeBuild 프로젝트를 생성하고 AWS_ACCOUNT_ID, KUBE_URL, KUBE_TOKEN 환경 변수 세팅을 한다.
+![image](https://user-images.githubusercontent.com/86210580/124920610-745a6580-e032-11eb-9bbf-226fbac7905d.png)
+![image](https://user-images.githubusercontent.com/86210580/124920571-69073a00-e032-11eb-8f6e-f281086a8d7f.png)
+
+- CodeBuild에 정책을 생성하여 EKS 권한 추가
+![image](https://user-images.githubusercontent.com/86210580/124920795-ac61a880-e032-11eb-9a6f-c00364d29fd8.png)
+
 ```
         {
            "Action": [
@@ -579,8 +584,7 @@ paths:
 ```
 ## CodeBuild 를 통한 CI/CD 동작 결과
 아래 이미지는 aws pipeline에 각각의 서비스들을 올려, 코드가 업데이트 될때마다 자동으로 빌드/배포 하도록 하였다. CodeBuild 결과 K8S 결과
-
-그림 
+![image](https://user-images.githubusercontent.com/86210580/124920951-d915c000-e032-11eb-93ad-3a59f569a486.png)
 
 ## Service Mesh
 ### istio 를 통해 booking, confirm service 에 적용
