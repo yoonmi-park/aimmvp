@@ -481,6 +481,8 @@ content-length: 0
 ## CI/CD 설정
 각 구현체들은 각자의 source repository 에 구성되었고, 사용한 CI/CD 플랫폼은 AWS CodeBuild를 사용하였으며, pipeline build script 는 각 프로젝트 폴더 이하에 buildspec.yml 에 포함되었다.
 
+![image](https://user-images.githubusercontent.com/86210580/124921364-475a8280-e033-11eb-89b6-bfe48c2f3121.png)
+
 1. 변경된 소스 코드를 GitHub에 push
 2. CodeBuild에서 webhook으로 GitHub의 push 이벤트를 감지하고 build, test 수행
 3. Docker image를 생성하여 ECR에 push
@@ -488,7 +490,6 @@ content-length: 0
 5. ECR에서 도커 이미지 pull
 
 [구현 사항]
-
 - CodeBuild 프로젝트를 생성하고 AWS_ACCOUNT_ID, KUBE_URL, KUBE_TOKEN 환경 변수 세팅을 한다.
 ![image](https://user-images.githubusercontent.com/86210580/124920610-745a6580-e032-11eb-9bbf-226fbac7905d.png)
 ![image](https://user-images.githubusercontent.com/86210580/124920571-69073a00-e032-11eb-8f6e-f281086a8d7f.png)
