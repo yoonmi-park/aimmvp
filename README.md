@@ -490,11 +490,18 @@ content-length: 0
 5. ECR에서 도커 이미지 pull
 
 [구현 사항]
-- CodeBuild 프로젝트를 생성하고 AWS_ACCOUNT_ID, KUBE_URL, KUBE_TOKEN 환경 변수 세팅을 한다.
+CodeBuild 프로젝트를 생성하고 AWS_ACCOUNT_ID, KUBE_URL, KUBE_TOKEN 환경 변수 세팅을 한다.
+- CodeBuild 생성 시 wehook을 설정하여 Github 코드가 푸쉬될때 마다 트리거 동작
+![image](https://user-images.githubusercontent.com/86210580/124923471-69550480-e035-11eb-95c6-0c011d6c39dc.png)
+- AWS_ACCOUNT_ID, KUBE_URL, KUBE_TOKEN 환경 변수 세팅을 한다.
+```
+token 확인
+kubectl -n kube-system describe secret eks-admin
+```
 ![image](https://user-images.githubusercontent.com/86210580/124920610-745a6580-e032-11eb-9bbf-226fbac7905d.png)
 ![image](https://user-images.githubusercontent.com/86210580/124920571-69073a00-e032-11eb-8f6e-f281086a8d7f.png)
 
-- CodeBuild에 정책을 생성하여 EKS 권한 추가
+- CodeBuild에 정책을 추가하여 ECR 연계
 ![image](https://user-images.githubusercontent.com/86210580/124920795-ac61a880-e032-11eb-9a6f-c00364d29fd8.png)
 
 ```
@@ -584,7 +591,7 @@ paths:
   - '/root/.m2/**/*'
 ```
 ## CodeBuild 를 통한 CI/CD 동작 결과
-아래 이미지는 aws pipeline에 각각의 서비스들을 올려, 코드가 업데이트 될때마다 자동으로 빌드/배포 하도록 하였다. CodeBuild 결과 K8S 결과
+아래 이미지는 aws pipeline에 각각의 서비스들을 올려, 코드가 업데이트 될때마다 자동으로 빌드/배포 하도록 하였다. 
 ![image](https://user-images.githubusercontent.com/86210580/124920951-d915c000-e032-11eb-93ad-3a59f569a486.png)
 
 ## Service Mesh
