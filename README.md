@@ -617,4 +617,10 @@ livenessProbe:
 ```
 
 ### ConfigMap 적용
+- cofigmap.yml 파일 생성 
+```
+
+```
+- deployment.yml에 적용하기 
+
 
