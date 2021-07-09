@@ -568,7 +568,7 @@ istio적용 결과
 ```
 kubectl scale deploy confirm --replicas=2
 ```
-![image](https://user-images.githubusercontent.com/86210580/125009780-2ed48180-e0a0-11eb-8712-01336f202594.png)
+![image](https://user-images.githubusercontent.com/86210580/125016485-65b09480-e0ac-11eb-92ba-f1dd3cecae0b.png)
 
 
 ### confirm 에 Circuit Break 적용
