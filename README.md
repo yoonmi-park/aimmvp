@@ -606,6 +606,7 @@ livenessProbe:
 ```
 
 ### ConfigMap 적용
+회의실 예약 서비스의 경우, 여러 빌딩의 회의실을 공유할 수 있으므로 configmap에 설정된 빌딩정보를 사용 할 수 있도록 한다.
 - cofigmap.yml 파일 생성 
 ```
 kubectl apply -f configmap.yml
@@ -617,6 +618,4 @@ kubectl apply -f configmap.yml
 ```
 kubectl apply -f deploymet.yml
 ```
-```
 
-```
