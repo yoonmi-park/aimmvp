@@ -611,9 +611,8 @@ livenessProbe:
 ```
 kubectl apply -f configmap.yml
 ```
-```
 ![image](https://user-images.githubusercontent.com/86210580/125029609-e67b8a80-e0c4-11eb-82f2-70717035dc5d.png)
-```
+
 - deployment.yml에 적용하기 
 ```
 kubectl apply -f deploymet.yml
