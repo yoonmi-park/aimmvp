@@ -552,17 +552,6 @@ paths:
 아래 이미지는 aws pipeline에 각각의 서비스들을 올려, 코드가 업데이트 될때마다 자동으로 빌드/배포 하도록 하였다. 
 ![image](https://user-images.githubusercontent.com/86210580/124920951-d915c000-e032-11eb-93ad-3a59f569a486.png)
 
-## Service Mesh
-### istio 를 통해 booking, confirm service 에 적용
-```
-kubectl get deploy booking -o yaml > booking_deploy.yaml
-kubectl apply -f <(istioctl kube-inject -f booking_deploy.yaml)
-
-kubectl get deploy confirm -o yaml > confirm_deploy.yaml
-kubectl apply -f <(istioctl kube-inject -f confirm_deploy.yaml)
-```
-istio적용 결과
-
 ### Scaleout(confirm) 적용
 앞서 CB 는 시스템을 안정되게 운영할 수 있게 해줬지만 사용자의 요청을 100% 받아들여주지 못했기 때문에 이에 대한 보완책으로 자동화된 확장 기능을 적용하고자 한다.
 ```
