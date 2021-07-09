@@ -79,21 +79,21 @@
 # 구현
 
 분석/설계 단계에서 도출된 헥사고날 아키텍처에 따라, 각 BC별로 대변되는 마이크로 서비스들을 스프링부트로 구현함. 구현한 각 서비스를 로컬에서 실행하는 방법은 아래와 같다 (각자의 포트넘버는 8081 ~ 808n 이다) 
-booking/ confirm/ gateway/ notification/ bookinglist/
+cna-booking/ cna-confirm/ cna-gateway/ cna-notification/ cna-bookinglist/
 ```
-cd booking
+cd cna-booking
 mvn spring-boot:run
 
-cd confirm
+cd cna-confirm
 mvn spring-boot:run 
 
-cd gateway
+cd cna-gateway
 mvn spring-boot:run  
 
-cd notification
+cd cna-notification
 mvn spring-boot:run
 
-cd bookinglist
+cd cna-bookinglist
 mvn spring-boot:run
 ```
 
@@ -171,40 +171,6 @@ import org.springframework.data.repository.PagingAndSortingRepository;
 public interface BookingRepository extends PagingAndSortingRepository<Booking, Long>{
 }
 ```
-### - 적용 후 REST API 의 테스트
-
- - [booking] 회의실 예약처리
-```
-❯ http  POST http://a87089e89ff2c465cb235f13b552bd86-1362531007.ap-northeast-2.elb.amazonaws.com:8080/bookings roomId="101" useStartDtm="20200831183000" useEndDtm="20200831193000" bookingUserId="06675"
-HTTP/1.1 201 Created
-Content-Type: application/json;charset=UTF-8
-Date: Tue, 01 Sep 2020 10:47:06 GMT
-Location: http://booking:8080/bookings/7
-transfer-encoding: chunked
-
-{
-    "_links": {
-        "booking": {
-            "href": "http://booking:8080/bookings/7"
-        },
-        "self": {
-            "href": "http://booking:8080/bookings/7"
-        }
-    },
-    "bookingUserId": "06675",
-    "roomId": 101,
-    "useEndDtm": "20200831193000",
-    "useStartDtm": "20200831183000"
-}
-```
- - [booking] 회의실 예약정보 수정
-```
-❯ http PATCH http://a87089e89ff2c465cb235f13b552bd86-1362531007.ap-northeast-2.elb.amazonaws.com:8080/bookings/7 bookingUserId="99999"
-```
- - [booking] 회의실 예약정보 삭제
-```
-❯ http DELETE http://a87089e89ff2c465cb235f13b552bd86-1362531007.ap-northeast-2.elb.amazonaws.com:8080/bookings/7
-```
 
 ## 동기식 호출 과 비동기식
 분석단계에서의 조건 중 하나로 컨펌 반려(confirmDeny)->회의실 예약 취소(bookingCancel) 간의 호출은 동기식 일관성을 유지하는 트랜잭션으로 처리하기로 하였다. 호출 프로토콜은 이미 앞서 Rest Repository 에 의해 노출되어있는 REST 서비스를 FeignClient 를 이용하여 호출하도록 한다.
@@ -223,11 +189,6 @@ public interface BookingService {
     @DeleteMapping(value = "/bookings/{id}")
     public void bookingCancel(@PathVariable long id);
 }
-
-
-
-
-
 
 // cna-confirm/../Confirm.java
     @PostUpdate
@@ -346,12 +307,13 @@ spec:
 ![image](https://user-images.githubusercontent.com/86210580/125005633-2fb4e580-e097-11eb-905a-3fae6fd086d4.png)
 
 ## 전체 시나리오 테스트
- 1.회의실 예약(bookingCreate)
-```
- http POST http://ae0865d6fab6f4939b945502eec3b95f-35623661.ap-northeast-2.elb.amazonaws.com:8080/bookings roomId="556677" bookingUserId="45678" useStartDtm="202009021330" useEndDtm="202009021430"
+ 1.회의실 예약(bookingCreate) 
  ```
+ http localhost:8088/bookings bookingUserId=05527 roomId=102 useEndDtm=20210708153000 useStartDtm=20210708173000
  ```
-{
+
+ ```
+ {
     "_links": {
         "booking": {
             "href": "http://booking:8080/bookings/3"
@@ -360,15 +322,15 @@ spec:
             "href": "http://booking:8080/bookings/3"
         }
     },
-    "bookingUserId": "45678",
-    "roomId": 556677,
-    "useEndDtm": "202009021430",
-    "useStartDtm": "202009021330"
+    "bookingUserId": "05527",
+    "roomId": 102,
+    "useEndDtm": "2021070815300",
+    "useStartDtm": "2021070817300"
 }
 ```
- 2.승인내역 등록 확인(confirmRequest)
-```
-http GET  http://ae0865d6fab6f4939b945502eec3b95f-35623661.ap-northeast-2.elb.amazonaws.com:8080/confirms/2
+ 2.승인내역 등록 확인(confirmRequest) 
+``` 
+ http localhost:8088/confirm bookingId=1 status=BOOKED bookinguserId=05527
 ```
 ```
 {
@@ -383,12 +345,12 @@ http GET  http://ae0865d6fab6f4939b945502eec3b95f-35623661.ap-northeast-2.elb.am
     "bookingId": 3,
     "confirmDtm": null,
     "status": "BOOKED",
-    "userId": "45678"
+    "userId": "05527"
 }
 ```
  3.알림(notification)내역 확인
-```
-http GET  http://ae0865d6fab6f4939b945502eec3b95f-35623661.ap-northeast-2.elb.amazonaws.com:8080/notifications/5
+``` 
+ http localhost:8088/notifications
 ```
 ```
 {
@@ -400,17 +362,18 @@ http GET  http://ae0865d6fab6f4939b945502eec3b95f-35623661.ap-northeast-2.elb.am
             "href": "http://notification:8080/notifications/5"
         }
     },
-    "contents": "conference room[556677] reservation is complete",
-    "sendDtm": "2020-09-02 02:03:56",
-    "userId": "45678"
+    "contents": "conference room[102] reservation is complete",
+    "sendDtm": "2021-07-08 02:40:28",
+    "userId": "05527"
 }
 ```
+
  4.CQRS(bookingList) 확인
+ ``` 
+ http localhost:8085/bookingLists
 ```
-http GET  http://ae0865d6fab6f4939b945502eec3b95f-35623661.ap-northeast-2.elb.amazonaws.com:8080/bookingLists/7
 ```
-```
-{
+ {
     "_links": {
         "bookingList": {
             "href": "http://bookingList:8080/bookingLists/7"
@@ -419,23 +382,23 @@ http GET  http://ae0865d6fab6f4939b945502eec3b95f-35623661.ap-northeast-2.elb.am
             "href": "http://bookingList:8080/bookingLists/7"
         }
     },
-    "bookingDtm": "2020-09-02 02:03:56",
+    "bookingDtm": "2021-07-08 02:38:48",
     "bookingId": 3,
-    "bookingUserId": "45678",
+    "bookingUserId": "05527",
     "confirmDtm": null,
     "confirmId": null,
     "confirmStatus": null,
     "confirmUserId": null,
-    "roomId": 556677,
-    "useEndDtm": "202009021430",
-    "useStartDtm": "202009021330"
+    "roomId": 102,
+    "useEndDtm": "20210708153000",
+    "useStartDtm": "20210708173000"
 }
 ```
  5.승인거절(confirmDenied)
-```
-http  PATCH http://ae0865d6fab6f4939b945502eec3b95f-35623661.ap-northeast-2.elb.amazonaws.com:8080/confirms/2 status="DENIED"
-```
-```
+ ``` 
+ http localhost:8088/confirms bookingId=1 status=DENIED  userId=05527
+ ``` 
+ ```
 {
     "_links": {
         "confirm": {
@@ -445,15 +408,16 @@ http  PATCH http://ae0865d6fab6f4939b945502eec3b95f-35623661.ap-northeast-2.elb.
             "href": "http://confirm:8080/confirms/2"
         }
     },
-    "bookingId": 3,
+    "bookingId": 5,
     "confirmDtm": null,
     "status": "DENIED",
-    "userId": "45678"
+    "userId": "05527"
 }
 ```
+
  6.승인거절 Notification
 ``` 
-http GET  http://ae0865d6fab6f4939b945502eec3b95f-35623661.ap-northeast-2.elb.amazonaws.com:8080/notifications/6
+http localhost:8088/notification
 ```
 ```
 {
@@ -466,19 +430,11 @@ http GET  http://ae0865d6fab6f4939b945502eec3b95f-35623661.ap-northeast-2.elb.am
         }
     },
     "contents": "reservation has been canceled",
-    "sendDtm": "2020-09-02 02:10:23",
-    "userId": "45678"
+    "sendDtm": "2021-07-08 02:53:23",
+    "userId": "05527"
 }
 ```
- 7. 승인거절시 bookingCancelled 호출 --> booking 내역 삭제
-```
-http GET  http://ae0865d6fab6f4939b945502eec3b95f-35623661.ap-northeast-2.elb.amazonaws.com:8080/bookings/3
-```
-```
-HTTP/1.1 404 Not Found
-Date: Wed, 02 Sep 2020 02:12:16 GMT
-content-length: 0
-```
+
 # 운영
 ## CI/CD 설정
 각 구현체들은 각자의 source repository 에 구성되었고, 사용한 CI/CD 플랫폼은 AWS CodeBuild를 사용하였으며, pipeline build script 는 각 프로젝트 폴더 이하에 buildspec.yml 에 포함되었다.
@@ -608,10 +564,12 @@ kubectl apply -f <(istioctl kube-inject -f confirm_deploy.yaml)
 istio적용 결과
 
 ### Scaleout(confirm) 적용
+앞서 CB 는 시스템을 안정되게 운영할 수 있게 해줬지만 사용자의 요청을 100% 받아들여주지 못했기 때문에 이에 대한 보완책으로 자동화된 확장 기능을 적용하고자 한다.
 ```
 kubectl scale deploy confirm --replicas=2
 ```
-scaleout 적용
+![image](https://user-images.githubusercontent.com/86210580/125009780-2ed48180-e0a0-11eb-8712-01336f202594.png)
+
 
 ### confirm 에 Circuit Break 적용
 ```
@@ -637,6 +595,7 @@ spec:
 EOF
 ```
 ### Self Healing 을 위한 Readiness, Liveness 적용
+Readiness Probe 및 LivenessProbe를 설정함
 ```
 ## cna-booking/../deplyment.yml
 readinessProbe:
@@ -656,4 +615,6 @@ livenessProbe:
     periodSeconds: 5
     failureThreshold: 5
 ```
+
+### ConfigMap 적용
 
