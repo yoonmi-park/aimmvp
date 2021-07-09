@@ -343,6 +343,8 @@ spec:
   type:
     LoadBalancer
 ```
+![image](https://user-images.githubusercontent.com/86210580/125005633-2fb4e580-e097-11eb-905a-3fae6fd086d4.png)
+
 ## 전체 시나리오 테스트
  1.회의실 예약(bookingCreate)
 ```
